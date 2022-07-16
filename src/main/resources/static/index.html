@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+
+<div id="app">
+  <h1>Hello world!</h1>
+  <h2>Messages</h2>
+  <ul>
+    <li v-for="msg in messages">{{ msg }}</li>
+  </ul>
+</div>
+
+<script src="https://unpkg.com/vue@next"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script>
+  Vue.createApp({
+    data() {
+      return {
+        messages: []
+      }
+    },
+    mounted() {
+      const sock = new SockJS("http://localhost:8080/ws")
+      const stompClient = Stomp.over(sock)
+
+      const onMessage = (e) => {
+        const message = JSON.parse(e.body).text
+        this.messages.push(message)
+      }
+
+      const onConnected = () => {
+        console.log("connected")
+        stompClient.subscribe("/topic/example-topic", onMessage)
+      }
+
+      stompClient.connect({}, onConnected, console.error)
+    }
+  }).mount("#app")
+</script>
+</body>
+</html>
